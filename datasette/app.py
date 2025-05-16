@@ -354,7 +354,8 @@ class Datasette:
         if config_dir and config_files and not config:
             with config_files[0].open() as fp:
                 config = parse_metadata(fp.read())
-
+        print(f"[DEBUG] init, config_dir {config_dir}")   
+        print(f"[DEBUG] init, metadata just be readed, metadata content: {metadata}")   
         # Move any "plugins" and "allow" settings from metadata to config - updates them in place
         metadata = metadata or {}
         config = config or {}
@@ -391,6 +392,7 @@ class Datasette:
             if key not in DEFAULT_SETTINGS:
                 raise StartupError("Invalid setting '{}' in datasette.json".format(key))
         self.config = config
+        print(f"[DEBUG] init, config file parsed, metadata content: {self.config}")   
         # CLI settings should overwrite datasette.json settings
         self._settings = dict(DEFAULT_SETTINGS, **(config_settings), **(settings or {}))
         self.renderers = {}  # File extension -> (renderer, can_render) functions
@@ -869,6 +871,8 @@ class Datasette:
                 queries[key] = {"sql": queries[key]}
             # Also make sure "name" is available:
             queries[key]["name"] = key
+        print(f"[DEBUG] metadata content: {self.config}")    
+        print(f"[DEBUG] metadata queries for {database_name}: {queries}")    
         return queries
 
     async def get_canned_query(self, database_name, query_name, actor):

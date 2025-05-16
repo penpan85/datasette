@@ -307,6 +307,10 @@ async def display_columns_and_rows(
                     ),
                 }
             )
+        # DEBUG: 打印id列的展示内容
+        # for cell in cells:
+        #     if cell["column"] == "id":
+        #         print("[DEBUG] id cell value:", repr(cell["value"]))    
         cell_rows.append(Row(cells))
 
     if link_column:

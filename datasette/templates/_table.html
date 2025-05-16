@@ -21,16 +21,95 @@
             </tr>
         </thead>
         <tbody>
-        {% for row in display_rows %}
-            <tr>
+            {% for row in display_rows %}
+              <tr>
                 {% for cell in row %}
-                    <td class="col-{{ cell.column|to_css_class }} type-{{ cell.value_type }}">{{ cell.value }}</td>
+                  {% if cell.column == 'id' %}
+                    <td class="col-{{ cell.column|to_css_class }} type-{{ cell.value_type }}">
+                      <div class="cell-content">
+                        {{ cell.value|safe }}
+                        <button class="copy-url-btn"
+                            data-id="{{ cell.raw }}"
+                            data-value="{{ cell.value|replace('"', '&quot;')|safe }}"
+                            onclick="copyDetailUrlByValue(this, this.dataset.value)"
+                            title="复制详情页URL">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 1H4C2.9 1 2 1.9 2 3V17H4V3H16V1ZM19 5H8C6.9 5 6 5.9 6 7V21C6 22.1 6.9 23 8 23H19C20.1 23 21 22.1 21 21V7C21 5.9 20.1 5 19 5ZM19 21H8V7H19V21Z"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  {% else %}
+                    <td class="col-{{ cell.column|to_css_class }} type-{{ cell.value_type }}">
+                      {{ cell.value }}
+                    </td>
+                  {% endif %}
                 {% endfor %}
-            </tr>
-        {% endfor %}
-        </tbody>
+              </tr>
+            {% endfor %}
+          </tbody>
     </table>
 </div>
 {% else %}
     <p class="zero-results">0 records</p>
 {% endif %}
+
+<style>
+.cell-content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.copy-url-btn {
+    opacity: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: opacity 0.2s, background-color 0.2s;
+}
+
+.copy-url-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.cell-content:hover .copy-url-btn {
+    opacity: 1;
+}
+
+.copy-url-btn svg {
+    color: #666;
+}
+</style>
+
+<script>
+
+function copyDetailUrlByValue(button, cellValue) {
+    // 用正则提取 href 属性（支持单引号和双引号）
+    const html = cellValue.replace(/&quot;/g, '"');
+    const match = html.match(/href=['"]([^'"]+)['"]/i);
+    console.log('match:', match);
+    console.log('cellValue:', cellValue);
+    if (match && match[1]) {
+        let url = match[1];
+        // 如果 url 是相对路径，则补全域名
+        if (url.startsWith('/')) {
+            url = window.location.origin + url;
+        }
+        navigator.clipboard.writeText(url).then(() => {
+            const originalTitle = button.getAttribute('title');
+            button.setAttribute('title', '已复制!');
+            setTimeout(() => {
+                button.setAttribute('title', originalTitle);
+            }, 2000);
+        }).catch(err => {
+            console.error('复制失败:', err);
+        });
+    } else {
+        alert('未找到链接，无法复制！');
+    }
+}
+</script>
